@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts     Account[]
+  portfolios   Portfolio[]
+  agentConfigs AgentConfig[]
+}
+
+model Account {
+  id        String   @id @default(uuid())
+  userId    String
+  provider  String
+  providerAccountId String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Portfolio {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  balance   Float    @default(100000.0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id])
+  trades Trade[]
+}
+
+model Trade {
+  id          String   @id @default(uuid())
+  portfolioId String
+  symbol      String
+  type        String
+  quantity    Float
+  price       Float
+  total       Float
+  timestamp   DateTime @default(now())
+
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id])
+}
+
+model MarketData {
+  id        String   @id @default(uuid())
+  source    String
+  symbol    String
+  price     Float
+  volume    Float
+  high24h   Float
+  low24h    Float
+  change24h Float
+  timestamp DateTime @default(now())
+
+  @@index([symbol, timestamp])
+  @@index([source, symbol])
+}
+
+model AgentConfig {
+  id           String   @id @default(uuid())
+  userId       String
+  name         String
+  modelState   Json?
+  hyperParams  Json?
+  lastTraining DateTime?
+  accuracy     Float    @default(0.0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id])
+  predictions Prediction[]
+}
+
+model Prediction {
+  id             String   @id @default(uuid())
+  agentId        String
+  symbol         String
+  direction      String
+  confidence     Float
+  predictedPrice Float
+  actualPrice    Float?
+  correct        Boolean?
+  timestamp      DateTime @default(now())
+
+  agent AgentConfig @relation(fields: [agentId], references: [id])
+
+  @@index([agentId, timestamp])
+}
+
+model UnifiedFeed {
+  id        String   @id @default(uuid())
+  symbol    String
+  source    String   @default("unified")
+  price     Float
+  volume    Float
+  high24h   Float
+  low24h    Float
+  change24h Float
+  bid       Float?
+  ask       Float?
+  spread    Float?
+  timestamp DateTime @default(now())
+
+  @@index([symbol, timestamp])
+  @@index([timestamp])
+}
