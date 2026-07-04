@@ -39,7 +39,6 @@ COPY --from=builder /root/.local /home/appuser/.local
 
 # Copy application code
 COPY --chown=appuser:appuser ./app /app/app
-COPY --chown=appuser:appuser ./.env /app/.env
 
 # Create logs directory
 RUN mkdir -p /app/logs && chown appuser:appuser /app/logs
