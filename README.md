@@ -2,22 +2,7 @@
 
 A production-ready, secure, and scalable full-stack application with FastAPI backend, Next.js frontend, Apache Kafka messaging, and Redis caching.
 
-## 📁 Project Structure
 
-```
-D:\pgsql fullstack\
-├── backend/          # FastAPI Backend API
-│   ├── app/         # Application code
-│   ├── Dockerfile   # Backend container
-│   ├── docker-compose.yml
-│   └── README.md    # Backend documentation
-│
-└── frontend/        # Next.js Frontend Application
-    ├── src/         # Source code
-    ├── Dockerfile   # Frontend container
-    ├── docker-compose.yml
-    └── README.md    # Frontend documentation
-```
 
 ## 🚀 Quick Start
 
