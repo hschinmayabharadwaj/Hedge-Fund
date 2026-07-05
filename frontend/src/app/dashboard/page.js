@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { AnimatePresence } from "framer-motion";
+import { MotionPage, LoadingSpinner } from "@/components/motion";
 import TerminalLayout from "@/components/layout/TerminalLayout";
 import DashboardView from "@/components/views/DashboardView";
 import AIInsightsView from "@/components/views/AIInsightsView";
@@ -38,7 +40,7 @@ export default function Dashboard() {
   if (status === "loading") {
     return (
       <div className="h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-secondary border-t-transparent rounded-full" />
+        <LoadingSpinner />
       </div>
     );
   }
@@ -55,7 +57,11 @@ export default function Dashboard() {
       activeCategory={activeCategory}
       onCategoryChange={setActiveCategory}
     >
-      <ActiveView />
+      <AnimatePresence mode="wait">
+        <MotionPage key={activeView}>
+          <ActiveView />
+        </MotionPage>
+      </AnimatePresence>
     </TerminalLayout>
   );
 }

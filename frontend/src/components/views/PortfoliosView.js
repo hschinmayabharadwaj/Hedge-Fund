@@ -1,6 +1,15 @@
 "use client";
 
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
+import {
+  Stagger,
+  StaggerItem,
+  FadeIn,
+  MotionButton,
+  TableRow,
+  AnimatedProgress,
+} from "@/components/motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 const POSITIONS = [
   { asset: "AAPL", dot: "bg-secondary", classLabel: "Equity", weight: "8.4%", value: "$104.2M", change: "+1.24%", positive: true, trendIcon: "show_chart" },
@@ -28,9 +37,11 @@ const ALLOCATION_LEGEND = [
 ];
 
 export default function PortfoliosView() {
+  const reduced = useReducedMotion();
+
   return (
     <div>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+      <FadeIn className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
         <div>
           <h2 className="text-headline-lg-mobile md:text-headline-lg text-on-surface mb-1 font-bold">
             Global Alpha Fund IV
@@ -40,19 +51,19 @@ export default function PortfoliosView() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="bg-surface-container border border-outline-variant text-on-surface px-4 py-2 rounded text-label-uppercase hover:bg-surface-container-high transition-colors">
+          <MotionButton className="bg-surface-container border border-outline-variant text-on-surface px-4 py-2 rounded text-label-uppercase hover:bg-surface-container-high transition-colors">
             Export Report
-          </button>
-          <button className="bg-secondary-container text-on-secondary-container px-4 py-2 rounded text-label-uppercase hover:bg-secondary hover:text-on-secondary transition-colors flex items-center gap-2">
+          </MotionButton>
+          <MotionButton className="bg-secondary-container text-on-secondary-container px-4 py-2 rounded text-label-uppercase hover:bg-secondary hover:text-on-secondary transition-colors flex items-center gap-2">
             <MaterialIcon name="auto_awesome" size={16} />
             AI Sim
-          </button>
+          </MotionButton>
         </div>
-      </div>
+      </FadeIn>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-6">
-        {/* Asset Allocation */}
-        <div className="col-span-1 md:col-span-4 bg-surface-container border border-outline-variant rounded-lg p-4 flex flex-col">
+      <Stagger className="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-6">
+        <StaggerItem className="col-span-1 md:col-span-4">
+        <div className="bg-surface-container border border-outline-variant rounded-lg p-4 flex flex-col h-full">
           <h3 className="text-body-md font-semibold text-on-surface mb-4">Asset Allocation</h3>
           <div className="flex-1 flex items-center justify-center relative min-h-[200px]">
             <div
@@ -77,9 +88,10 @@ export default function PortfoliosView() {
             ))}
           </div>
         </div>
+        </StaggerItem>
 
-        {/* Risk Metrics */}
-        <div className="col-span-1 md:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-gutter">
+        <StaggerItem className="col-span-1 md:col-span-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
           <div className="bg-surface-container border border-outline-variant rounded-lg p-4 flex flex-col justify-between">
             <div>
               <div className="flex justify-between items-start mb-2">
@@ -93,7 +105,7 @@ export default function PortfoliosView() {
               </div>
             </div>
             <div className="mt-4 h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
-              <div className="h-full bg-secondary w-[45%]" />
+              <AnimatedProgress width="45%" className="bg-secondary" />
             </div>
           </div>
 
@@ -121,21 +133,32 @@ export default function PortfoliosView() {
             </div>
             <div className="h-24 flex items-end gap-1 opacity-80">
               <div className="w-full h-full border-b border-l border-outline-variant relative flex items-end pl-2 gap-1 pb-1">
-                {YTD_BARS.map((bar, i) => (
-                  <div
-                    key={i}
-                    className={`flex-1 ${bar.positive ? "bg-secondary" : "bg-error"}`}
-                    style={{ height: bar.height }}
-                  />
-                ))}
+                {YTD_BARS.map((bar, i) =>
+                  reduced ? (
+                    <div
+                      key={i}
+                      className={`flex-1 ${bar.positive ? "bg-secondary" : "bg-error"}`}
+                      style={{ height: bar.height }}
+                    />
+                  ) : (
+                    <motion.div
+                      key={i}
+                      className={`flex-1 ${bar.positive ? "bg-secondary" : "bg-error"}`}
+                      initial={{ height: 0 }}
+                      animate={{ height: bar.height }}
+                      transition={{ delay: 0.1 + i * 0.05, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    />
+                  )
+                )}
                 <div className="absolute bottom-4 left-0 w-full h-px border-t border-dashed border-primary" />
               </div>
             </div>
           </div>
         </div>
-      </div>
+        </StaggerItem>
+      </Stagger>
 
-      {/* Top Positions Table */}
+      <FadeIn delay={0.15}>
       <div className="bg-surface-container border border-outline-variant rounded-lg overflow-hidden">
         <div className="px-4 py-3 border-b border-outline-variant flex justify-between items-center bg-surface-container-high">
           <h3 className="text-body-md font-semibold text-on-surface">Top Positions</h3>
@@ -162,9 +185,10 @@ export default function PortfoliosView() {
             </thead>
             <tbody className="font-data-mono">
               {POSITIONS.map((p, idx) => (
-                <tr
+                <TableRow
                   key={p.asset}
-                  className={`hover:bg-surface-container-highest transition-colors ${
+                  index={idx}
+                  className={`transition-colors ${
                     idx < POSITIONS.length - 1 ? "border-b border-outline-variant" : ""
                   }`}
                 >
@@ -187,12 +211,13 @@ export default function PortfoliosView() {
                   <td className={`py-2 px-4 text-center ${p.positive ? "text-secondary" : "text-error"}`}>
                     <MaterialIcon name={p.trendIcon} size={16} />
                   </td>
-                </tr>
+                </TableRow>
               ))}
             </tbody>
           </table>
         </div>
       </div>
+      </FadeIn>
     </div>
   );
 }

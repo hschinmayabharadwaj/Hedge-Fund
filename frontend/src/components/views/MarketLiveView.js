@@ -2,6 +2,14 @@
 
 import { useState } from "react";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
+import {
+  Stagger,
+  StaggerItem,
+  FadeIn,
+  MotionButton,
+  PulseDot,
+} from "@/components/motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 const AAPL_LOGO =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuDKJzKayOIljdIPVmcZxoURT3RXOPBvJncvTS2eQc5uk5cVYd2ijKdzwJZXo0E1Ir5Wv8dNSCP3iEc0LR0BDCrAVVGZBw6gk_OX_huE1HpAMyzBcENQU1ucy_TcKhnJkDKTJvT9-e1icvnYw_RY2SjMMMwZzKfUQu9KMnAyTXTY4LBPO5khDEw9TJrJeAz1TccYmC4HBRvnxJtN9cVFI-Yye56l-T1Ji95m-hLFdOLi-1OHVRpi6WSX6g";
@@ -62,21 +70,39 @@ function CandlestickChart() {
   );
 }
 
-function OrderBookRow({ size, price, depth, side }) {
+function OrderBookRow({ size, price, depth, side, index = 0 }) {
   const isAsk = side === "ask";
+  const reduced = useReducedMotion();
+  const Row = reduced ? "tr" : motion.tr;
   return (
-    <tr className="hover:bg-surface-variant relative group">
+    <Row
+      className="hover:bg-surface-variant relative group"
+      {...(!reduced && {
+        initial: { opacity: 0, x: isAsk ? 8 : -8 },
+        animate: { opacity: 1, x: 0 },
+        transition: { delay: index * 0.05, duration: 0.35 },
+      })}
+    >
       <td colSpan={2} className="p-0 relative">
-        <div
-          className={`absolute right-0 top-0 bottom-0 z-0 ${isAsk ? "bg-error/10" : "bg-secondary/10"}`}
-          style={{ width: `${depth}%` }}
-        />
+        {reduced ? (
+          <div
+            className={`absolute right-0 top-0 bottom-0 z-0 ${isAsk ? "bg-error/10" : "bg-secondary/10"}`}
+            style={{ width: `${depth}%` }}
+          />
+        ) : (
+          <motion.div
+            className={`absolute right-0 top-0 bottom-0 z-0 ${isAsk ? "bg-error/10" : "bg-secondary/10"}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${depth}%` }}
+            transition={{ delay: 0.2 + index * 0.05, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          />
+        )}
         <div className="grid grid-cols-2 font-data-mono text-[12px] py-1 px-0 relative z-10">
           <span className="text-on-surface">{size}</span>
           <span className={`text-right ${isAsk ? "text-error" : "text-secondary"}`}>{price}</span>
         </div>
       </td>
-    </tr>
+    </Row>
   );
 }
 
@@ -84,10 +110,9 @@ export default function MarketLiveView() {
   const [timeframe, setTimeframe] = useState("1M");
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-unit md:gap-gutter max-w-[var(--spacing-container-max)] mx-auto w-full">
-      {/* Main chart column */}
-      <div className="xl:col-span-8 flex flex-col gap-unit md:gap-gutter">
-        {/* Ticker header */}
+    <Stagger className="grid grid-cols-1 xl:grid-cols-12 gap-unit md:gap-gutter max-w-[var(--spacing-container-max)] mx-auto w-full">
+      <StaggerItem className="xl:col-span-8 flex flex-col gap-unit md:gap-gutter">
+        <FadeIn>
         <div className="bg-surface-container border border-outline-variant rounded p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-primary-container rounded flex items-center justify-center border border-outline-variant">
@@ -118,22 +143,29 @@ export default function MarketLiveView() {
             <span className="text-body-sm text-on-surface-variant">Market Open • Vol: 42.1M</span>
           </div>
         </div>
+        </FadeIn>
 
-        {/* Chart */}
         <div className="bg-surface-container border border-outline-variant rounded p-4 flex-1 min-h-[400px] flex flex-col relative overflow-hidden group">
           <div className="flex justify-between items-center mb-4 z-10">
-            <div className="flex gap-1 bg-surface-container-highest p-1 rounded border border-outline-variant">
+            <div className="flex gap-1 bg-surface-container-highest p-1 rounded border border-outline-variant relative">
               {TIMEFRAMES.map((tf) => (
                 <button
                   key={tf}
                   onClick={() => setTimeframe(tf)}
-                  className={`px-2 py-1 text-[10px] font-label-uppercase transition-colors rounded ${
+                  className={`relative px-2 py-1 text-[10px] font-label-uppercase transition-colors rounded z-10 ${
                     timeframe === tf
-                      ? "bg-surface text-secondary border border-outline-variant shadow-sm"
+                      ? "text-secondary"
                       : "text-on-surface-variant hover:text-on-surface"
                   }`}
                 >
-                  {tf}
+                  {timeframe === tf && (
+                    <motion.span
+                      layoutId="market-timeframe"
+                      className="absolute inset-0 bg-surface border border-outline-variant shadow-sm rounded"
+                      transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative">{tf}</span>
                 </button>
               ))}
             </div>
@@ -159,36 +191,31 @@ export default function MarketLiveView() {
           </div>
         </div>
 
-        {/* Technical indicators */}
-        <div className="grid grid-cols-3 gap-unit md:gap-gutter">
-          <div className="bg-surface-container border border-outline-variant rounded p-3">
-            <div className="text-body-sm text-on-surface-variant mb-1">RSI (14)</div>
-            <div className="font-data-mono text-on-surface text-lg">
-              68.4 <span className="text-secondary text-xs">Neutral</span>
-            </div>
-          </div>
-          <div className="bg-surface-container border border-outline-variant rounded p-3">
-            <div className="text-body-sm text-on-surface-variant mb-1">MACD</div>
-            <div className="font-data-mono text-secondary text-lg">
-              +1.24 <span className="text-xs">Bullish</span>
-            </div>
-          </div>
-          <div className="bg-surface-container border border-outline-variant rounded p-3">
-            <div className="text-body-sm text-on-surface-variant mb-1">Vol (20d)</div>
-            <div className="font-data-mono text-on-surface text-lg">
-              24.5% <span className="text-error text-xs">High</span>
-            </div>
-          </div>
-        </div>
-      </div>
+        <Stagger fast className="grid grid-cols-3 gap-unit md:gap-gutter">
+          {[
+            { label: "RSI (14)", value: "68.4", sub: "Neutral", subClass: "text-secondary" },
+            { label: "MACD", value: "+1.24", sub: "Bullish", subClass: "text-secondary" },
+            { label: "Vol (20d)", value: "24.5%", sub: "High", subClass: "text-error" },
+          ].map((ind) => (
+            <StaggerItem key={ind.label}>
+              <div className="bg-surface-container border border-outline-variant rounded p-3">
+                <div className="text-body-sm text-on-surface-variant mb-1">{ind.label}</div>
+                <div className="font-data-mono text-on-surface text-lg">
+                  {ind.value}{" "}
+                  <span className={`${ind.subClass} text-xs`}>{ind.sub}</span>
+                </div>
+              </div>
+            </StaggerItem>
+          ))}
+        </Stagger>
+      </StaggerItem>
 
-      {/* Right sidebar */}
-      <div className="xl:col-span-4 flex flex-col gap-unit md:gap-gutter">
+      <StaggerItem className="xl:col-span-4 flex flex-col gap-unit md:gap-gutter">
         {/* Order Book */}
         <div className="bg-surface-container border border-outline-variant rounded flex flex-col min-h-[300px]">
           <div className="p-3 border-b border-outline-variant flex justify-between items-center">
             <h3 className="text-[14px] font-semibold text-on-surface">Order Book</h3>
-            <span className="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(78,222,163,0.5)]" />
+            <PulseDot className="w-2 h-2 bg-secondary shadow-[0_0_8px_rgba(78,222,163,0.5)]" />
           </div>
           <div className="flex-1 overflow-y-auto scrollbar-hide p-2 relative">
             <table className="w-full text-left">
@@ -203,8 +230,8 @@ export default function MarketLiveView() {
                 </tr>
               </thead>
               <tbody className="font-data-mono text-[12px]">
-                {ORDER_ASKS.map((row) => (
-                  <OrderBookRow key={row.price} {...row} side="ask" />
+                {ORDER_ASKS.map((row, i) => (
+                  <OrderBookRow key={row.price} {...row} side="ask" index={i} />
                 ))}
                 <tr>
                   <td
@@ -214,23 +241,22 @@ export default function MarketLiveView() {
                     Spread: 0.05
                   </td>
                 </tr>
-                {ORDER_BIDS.map((row) => (
-                  <OrderBookRow key={row.price} {...row} side="bid" />
+                {ORDER_BIDS.map((row, i) => (
+                  <OrderBookRow key={row.price} {...row} side="bid" index={i} />
                 ))}
               </tbody>
             </table>
           </div>
           <div className="p-3 border-t border-outline-variant flex gap-2">
-            <button className="flex-1 bg-error-container/20 text-error border border-error/50 hover:bg-error-container/40 text-label-uppercase text-[11px] py-1.5 rounded transition-colors">
+            <MotionButton className="flex-1 bg-error-container/20 text-error border border-error/50 hover:bg-error-container/40 text-label-uppercase text-[11px] py-1.5 rounded transition-colors">
               Sell (Short)
-            </button>
-            <button className="flex-1 bg-secondary-container/20 text-secondary border border-secondary/50 hover:bg-secondary-container/40 text-label-uppercase text-[11px] py-1.5 rounded transition-colors">
+            </MotionButton>
+            <MotionButton className="flex-1 bg-secondary-container/20 text-secondary border border-secondary/50 hover:bg-secondary-container/40 text-label-uppercase text-[11px] py-1.5 rounded transition-colors">
               Buy (Long)
-            </button>
+            </MotionButton>
           </div>
         </div>
 
-        {/* Smart Alerts */}
         <div className="bg-surface-container border-t-2 border-t-primary border-x border-b border-outline-variant rounded flex flex-col flex-1 min-h-[300px] relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
           <div className="p-3 border-b border-outline-variant flex justify-between items-center relative z-10">
@@ -243,10 +269,13 @@ export default function MarketLiveView() {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-3 relative z-10">
-            {ALERTS.map((alert) => (
-              <div
+            {ALERTS.map((alert, i) => (
+              <motion.div
                 key={alert.tag}
                 className="bg-surface-container-highest p-3 rounded border border-outline-variant"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 + i * 0.1, duration: 0.4 }}
               >
                 <div className="flex justify-between items-start mb-1">
                   <span className={`px-1.5 py-0.5 rounded text-[9px] font-label-uppercase ${alert.tagClass}`}>
@@ -255,11 +284,11 @@ export default function MarketLiveView() {
                   <span className="text-[10px] text-on-surface-variant font-data-mono">{alert.time}</span>
                 </div>
                 <p className="text-[12px] text-on-surface leading-snug">{alert.text}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
-      </div>
-    </div>
+      </StaggerItem>
+    </Stagger>
   );
 }
