@@ -13,6 +13,15 @@ import {
 } from "recharts";
 import { Card, StatusDot, TimeframeToggle } from "@/components/ui/Card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
+import {
+  Stagger,
+  StaggerItem,
+  FadeIn,
+  MotionButton,
+  TableRow,
+  AnimatedProgress,
+  PulseDot,
+} from "@/components/motion";
 
 const KPI_DATA = [
   { label: "Total AUM", value: "$14.28B", change: "+1.2% (+$171.3M)", positive: true, icon: "account_balance_wallet" },
@@ -66,25 +75,25 @@ export default function DashboardView() {
 
   return (
     <div>
-      <div className="flex justify-between items-end mb-6">
+      <FadeIn className="flex justify-between items-end mb-6">
         <div>
           <h2 className="text-headline-lg font-bold text-on-surface">Global Portfolio Command</h2>
           <p className="text-body-sm text-on-surface-variant mt-1 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-secondary block" />
+            <PulseDot className="w-1.5 h-1.5 bg-secondary" />
             Live Data Feed Active • Last updated: 09:42:15 NYT
           </p>
         </div>
-        <button className="px-3 py-1.5 bg-surface-container border border-outline-variant rounded text-label-uppercase text-on-surface hover:bg-surface-container-high transition-colors">
+        <MotionButton className="px-3 py-1.5 bg-surface-container border border-outline-variant rounded text-label-uppercase text-on-surface hover:bg-surface-container-high transition-colors">
           Export Report
-        </button>
-      </div>
+        </MotionButton>
+      </FadeIn>
 
-      <div className="grid grid-cols-12 gap-gutter">
+      <Stagger className="grid grid-cols-12 gap-gutter">
         {KPI_DATA.map((kpi) => (
+          <StaggerItem key={kpi.label} className="col-span-12 lg:col-span-3">
           <Card
-            key={kpi.label}
             insight={kpi.insight}
-            className="col-span-12 lg:col-span-3 p-4 flex flex-col justify-between"
+            className="p-4 flex flex-col justify-between h-full"
           >
             <div className="flex justify-between items-start mb-2">
               <span className="text-label-uppercase text-on-surface-variant flex items-center gap-1">
@@ -112,9 +121,11 @@ export default function DashboardView() {
               </div>
             </div>
           </Card>
+          </StaggerItem>
         ))}
 
-        <Card className="col-span-12 lg:col-span-8 p-4 flex flex-col min-h-[320px]" hover={false}>
+        <StaggerItem className="col-span-12 lg:col-span-8">
+        <Card className="p-4 flex flex-col min-h-[320px]" hover={false}>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-body-md font-semibold text-on-surface">Fund Performance vs Benchmark</h3>
             <TimeframeToggle options={TIMEFRAMES} value={timeframe} onChange={setTimeframe} />
@@ -145,8 +156,10 @@ export default function DashboardView() {
             </AreaChart>
           </ResponsiveContainer>
         </Card>
+        </StaggerItem>
 
-        <Card className="col-span-12 lg:col-span-4 p-4 flex flex-col" hover={false}>
+        <StaggerItem className="col-span-12 lg:col-span-4">
+        <Card className="p-4 flex flex-col h-full" hover={false}>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-body-md font-semibold text-on-surface">Exposure by Sector</h3>
             <MaterialIcon name="pie_chart" size={16} className="text-outline" />
@@ -159,14 +172,16 @@ export default function DashboardView() {
                   <span className="text-on-surface-variant">{s.pct}%</span>
                 </div>
                 <div className="w-full h-1.5 bg-surface rounded-full overflow-hidden">
-                  <div className={`h-full ${s.color} rounded-full`} style={{ width: `${s.pct}%` }} />
+                  <AnimatedProgress width={`${s.pct}%`} className={s.color} />
                 </div>
               </div>
             ))}
           </div>
         </Card>
+        </StaggerItem>
 
-        <Card className="col-span-12 lg:col-span-8 overflow-hidden flex flex-col" hover={false}>
+        <StaggerItem className="col-span-12 lg:col-span-8">
+        <Card className="overflow-hidden flex flex-col" hover={false}>
           <div className="p-4 border-b border-outline-variant bg-surface-container flex justify-between items-center">
             <h3 className="text-body-md font-semibold text-on-surface">Top Holdings (Equity Book)</h3>
             <span className="px-2 py-0.5 rounded bg-surface-bright text-on-surface-variant text-label-uppercase text-[10px] border border-outline-variant">
@@ -190,10 +205,11 @@ export default function DashboardView() {
                 </tr>
               </thead>
               <tbody className="font-data-mono text-body-sm text-on-surface">
-                {HOLDINGS.map((h) => (
-                  <tr
+                {HOLDINGS.map((h, i) => (
+                  <TableRow
                     key={h.ticker}
-                    className="hover:bg-surface-container-highest border-b border-surface-variant/50 transition-colors"
+                    index={i}
+                    className="border-b border-surface-variant/50"
                   >
                     <td className="py-2 px-4 font-bold">{h.ticker}</td>
                     <td className="py-2 px-4 text-right">{h.position}</td>
@@ -211,14 +227,16 @@ export default function DashboardView() {
                         {h.action}
                       </button>
                     </td>
-                  </tr>
+                  </TableRow>
                 ))}
               </tbody>
             </table>
           </div>
         </Card>
+        </StaggerItem>
 
-        <Card className="col-span-12 lg:col-span-4 p-4 flex flex-col" hover={false}>
+        <StaggerItem className="col-span-12 lg:col-span-4">
+        <Card className="p-4 flex flex-col h-full" hover={false}>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-body-md font-semibold text-on-surface">Aggregated Data Feeds</h3>
             <MaterialIcon name="settings_input_antenna" size={16} className="text-outline" />
@@ -253,7 +271,8 @@ export default function DashboardView() {
             ))}
           </div>
         </Card>
-      </div>
+        </StaggerItem>
+      </Stagger>
     </div>
   );
 }
