@@ -1,73 +1,83 @@
 @import "tailwindcss";
 
 @theme {
-  /* Modern Gradient-based Color System */
-  --color-surface: linear-gradient(155deg, #070E1A 0%, #0B1524 50%, #0D1828 100%);
-  --color-surface-dim: #070E1A;
-  --color-surface-bright: #1E2A3E;
-  --color-surface-container-lowest: #050A14;
-  --color-surface-container-low: #0D1421;
-  --color-surface-container: #131B2A;
-  --color-surface-container-high: #1C2536;
-  --color-surface-container-highest: #253143;
-  --color-surface-variant: #1E2A3E;
-  --color-surface-tint: #A3B2DC;
+  /* Professional Fintech Color Palette */
+  --color-background: #0F172A;
+  --color-surface: #1E293B;
+  --color-surface-dim: #0F172A;
+  --color-surface-bright: #334155;
+  --color-surface-container-lowest: #0A0F1A;
+  --color-surface-container-low: #1A2332;
+  --color-surface-container: #1E293B;
+  --color-surface-container-high: #293548;
+  --color-surface-container-highest: #334155;
+  --color-surface-variant: #334155;
+  --color-surface-tint: #2563EB;
 
-  /* On-surface */
-  --color-on-surface: #F0F6FF;
-  --color-on-surface-variant: #B0BFD4;
-  --color-inverse-surface: #F0F6FF;
-  --color-inverse-on-surface: #1C2536;
+  /* Text Colors */
+  --color-on-surface: #F8FAFC;
+  --color-on-surface-variant: #94A3B8;
+  --color-inverse-surface: #F8FAFC;
+  --color-inverse-on-surface: #1E293B;
 
   /* Outline */
-  --color-outline: #64748B;
+  --color-outline: #475569;
   --color-outline-variant: #334155;
 
-  /* Primary - Modern Cyan/Blue */
-  --color-primary: #7DD3FC;
-  --color-on-primary: #0C4A6E;
-  --color-primary-container: linear-gradient(135deg, #0C4A6E 0%, #0369A1 100%);
-  --color-on-primary-container: #E0F2FE;
-  --color-inverse-primary: #0369A1;
-  --color-primary-fixed: #BAE6FD;
-  --color-primary-fixed-dim: #7DD3FC;
-  --color-on-primary-fixed: #0C4A6E;
-  --color-on-primary-fixed-variant: #075985;
+  /* Primary - Professional Blue */
+  --color-primary: #2563EB;
+  --color-on-primary: #F8FAFC;
+  --color-primary-container: #1E40AF;
+  --color-on-primary-container: #DBEAFE;
+  --color-inverse-primary: #3B82F6;
+  --color-primary-fixed: #60A5FA;
+  --color-primary-fixed-dim: #2563EB;
+  --color-on-primary-fixed: #0F172A;
+  --color-on-primary-fixed-variant: #1E40AF;
 
-  /* Secondary (growth/success) - Modern Emerald */
-  --color-secondary: #34D399;
-  --color-on-secondary: #064E3B;
-  --color-secondary-container: linear-gradient(135deg, #064E3B 0%, #059669 100%);
-  --color-on-secondary-container: #D1FAE5;
-  --color-secondary-fixed: #A7F3D0;
-  --color-secondary-fixed-dim: #34D399;
-  --color-on-secondary-fixed: #064E3B;
-  --color-on-secondary-fixed-variant: #047857;
+  /* Secondary (Success/Profit) - Green */
+  --color-secondary: #22C55E;
+  --color-on-secondary: #0F172A;
+  --color-secondary-container: #16A34A;
+  --color-on-secondary-container: #DCFCE7;
+  --color-secondary-fixed: #4ADE80;
+  --color-secondary-fixed-dim: #22C55E;
+  --color-on-secondary-fixed: #0F172A;
+  --color-on-secondary-fixed-variant: #15803D;
 
-  /* Tertiary (decline/risk) - Modern Coral */
-  --color-tertiary: #F87171;
-  --color-on-tertiary: #7F1D1D;
-  --color-tertiary-container: linear-gradient(135deg, #7F1D1D 0%, #DC2626 100%);
-  --color-on-tertiary-container: #FECACA;
-  --color-tertiary-fixed: #FCA5A5;
-  --color-tertiary-fixed-dim: #F87171;
-  --color-on-tertiary-fixed: #7F1D1D;
-  --color-on-tertiary-fixed-variant: #991B1B;
+  /* Tertiary (Loss/Danger) - Red */
+  --color-tertiary: #EF4444;
+  --color-on-tertiary: #F8FAFC;
+  --color-tertiary-container: #DC2626;
+  --color-on-tertiary-container: #FEE2E2;
+  --color-tertiary-fixed: #F87171;
+  --color-tertiary-fixed-dim: #EF4444;
+  --color-on-tertiary-fixed: #F8FAFC;
+  --color-on-tertiary-fixed-variant: #B91C1C;
 
-  /* Accent Colors */
+  /* Warning - Amber */
+  --color-warning: #F59E0B;
+  --color-on-warning: #0F172A;
+  --color-warning-container: #D97706;
+  --color-on-warning-container: #FEF3C7;
+
+  /* Info */
+  --color-info: #3B82F6;
+  --color-on-info: #F8FAFC;
+
+  /* Accent Colors for Charts */
   --color-accent-purple: #A855F7;
-  --color-accent-yellow: #FBBF24;
-  --color-accent-teal: #2DD4BF;
+  --color-accent-cyan: #06B6D4;
+  --color-accent-pink: #EC4899;
+  --color-accent-indigo: #6366F1;
+  --color-accent-teal: #14B8A6;
+  --color-accent-orange: #F97316;
 
   /* Error */
-  --color-error: #FCA5A5;
-  --color-on-error: #7F1D1D;
-  --color-error-container: linear-gradient(135deg, #7F1D1D 0%, #DC2626 100%);
-  --color-on-error-container: #FECACA;
-
-  /* Background */
-  --color-background: linear-gradient(155deg, #070E1A 0%, #0B1524 50%, #0D1828 100%);
-  --color-on-background: #F0F6FF;
+  --color-error: #EF4444;
+  --color-on-error: #F8FAFC;
+  --color-error-container: #DC2626;
+  --color-on-error-container: #FEE2E2;
 
   /* Spacing System - 8px base */
   --spacing-unit: 8px;
@@ -95,15 +105,18 @@
   --radius-2xl: 32px;
   --radius-full: 9999px;
 
-  /* Elevation Shadows */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --shadow-base: 0 4px 16px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.7);
-  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.8);
+  /* Elevation Shadows - Enhanced for fintech */
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.6);
+  --shadow-base: 0 4px 16px rgba(0, 0, 0, 0.7);
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.75);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.8);
+  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.85);
+  --shadow-glow-primary: 0 0 20px rgba(37, 99, 235, 0.4);
+  --shadow-glow-secondary: 0 0 20px rgba(34, 197, 94, 0.4);
+  --shadow-glow-tertiary: 0 0 20px rgba(239, 68, 68, 0.4);
 
-  /* Fonts */
+  /* Fonts - Professional Fintech */
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", "Cascadia Code", "Consolas", monospace;
   --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

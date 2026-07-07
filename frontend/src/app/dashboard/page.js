@@ -6,20 +6,20 @@ import { useSession } from "next-auth/react";
 import { AnimatePresence } from "framer-motion";
 import { MotionPage, LoadingSpinner } from "@/components/motion";
 import TerminalLayout from "@/components/layout/TerminalLayout";
-import DashboardView from "@/components/views/DashboardView";
+import FinancialDashboard from "@/components/views/FinancialDashboard";
 import AIInsightsView from "@/components/views/AIInsightsView";
 import MarketLiveView from "@/components/views/MarketLiveView";
 import PortfoliosView from "@/components/views/PortfoliosView";
 
 const SEARCH_PLACEHOLDERS = {
-  dashboard: "Command (e.g., /ticker AAPL, /run_model alpha_v4)",
+  dashboard: "Search stocks, portfolios, or market data...",
   "ai-insights": "Search parameters, models, assets...",
   "market-live": "Search Ticker, Asset, ISIN...",
   portfolios: "Search funds, positions, assets...",
 };
 
 const VIEWS = {
-  dashboard: DashboardView,
+  dashboard: FinancialDashboard,
   "ai-insights": AIInsightsView,
   "market-live": MarketLiveView,
   portfolios: PortfoliosView,
@@ -47,7 +47,7 @@ export default function Dashboard() {
 
   if (!session) return null;
 
-  const ActiveView = VIEWS[activeView] || DashboardView;
+  const ActiveView = VIEWS[activeView] || FinancialDashboard;
 
   return (
     <TerminalLayout

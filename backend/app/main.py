@@ -20,6 +20,7 @@ from app.core.rate_limiter import rate_limiter
 from app.core.kafka_client import kafka_producer, kafka_admin
 from app.api.auth import router as auth_router
 from app.api.routes import router as api_router
+from app.api.market import router as market_router
 
 
 # Configure logging
@@ -230,6 +231,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Include routers
 app.include_router(auth_router)
 app.include_router(api_router)
+app.include_router(market_router)
 
 
 # Prometheus metrics endpoint

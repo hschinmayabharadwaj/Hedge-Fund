@@ -30,7 +30,18 @@
     "recharts": "^3.9.1",
     "uuid": "^14.0.1",
     "ws": "^8.21.0",
-    "zustand": "^5.0.14"
+    "zustand": "^5.0.14",
+    "lucide-react": "^0.460.0",
+    "@heroicons/react": "^2.1.5",
+    "@iconify/react": "^5.0.2",
+    "@tabler/icons-react": "^3.22.0",
+    "apexcharts": "^4.0.0",
+    "react-apexcharts": "^1.4.1",
+    "date-fns": "^4.1.0",
+    "axios": "^1.7.9",
+    "react-countup": "^6.5.3",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {
     "autoprefixer": "^10.5.2",
