@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { RLAgent } from "@/lib/rl-agent";
 import { marketAggregator } from "@/lib/market-aggregator";
 
@@ -46,6 +46,7 @@ export async function GET(req) {
     }
 
     case "history": {
+      const prisma = await getPrisma();
       const predictions = await prisma.prediction.findMany({
         where: { agentId: agent.agentId },
         orderBy: { timestamp: "desc" },

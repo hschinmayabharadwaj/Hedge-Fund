@@ -1,4 +1,4 @@
-import { prisma } from "./prisma";
+import { getPrisma } from "./prisma";
 import { redis } from "./redis";
 
 const ACTIONS = ["BUY", "SELL", "HOLD"];
@@ -23,6 +23,7 @@ export class RLAgent {
   }
 
   async initialize() {
+    const prisma = await getPrisma();
     let config = await prisma.agentConfig.findFirst({
       where: { userId: this.userId, name: this.agentName },
     });
@@ -138,6 +139,7 @@ export class RLAgent {
       agentVersion: this.episodeCount,
     };
 
+    const prisma = await getPrisma();
     await prisma.prediction.create({
       data: {
         agentId: this.agentId,
@@ -184,6 +186,7 @@ export class RLAgent {
 
     const accuracy = Math.abs(reward) / (Math.abs(actualReturn * 10) + 0.001);
 
+    const prisma = await getPrisma();
     await prisma.agentConfig.update({
       where: { id: this.agentId },
       data: {
@@ -208,6 +211,7 @@ export class RLAgent {
     const results = [];
     for (let i = 0; i < iterations; i++) {
       const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+      const prisma = await getPrisma();
       const history = await prisma.unifiedFeed.findMany({
         where: { symbol },
         orderBy: { timestamp: "desc" },
