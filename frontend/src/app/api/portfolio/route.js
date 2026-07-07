@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limiter";
 
 export async function GET(req) {
@@ -9,6 +9,7 @@ export async function GET(req) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const prisma = await getPrisma();
   const portfolios = await prisma.portfolio.findMany({
     where: { userId: session.user.id },
     include: {
@@ -58,6 +59,7 @@ export async function POST(req) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
+  const prisma = await getPrisma();
   const portfolio = await prisma.portfolio.findFirst({
     where: { id: portfolioId, userId: session.user.id },
   });

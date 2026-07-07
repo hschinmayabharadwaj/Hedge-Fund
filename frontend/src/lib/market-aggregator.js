@@ -1,4 +1,4 @@
-import { prisma } from "./prisma";
+import { getPrisma } from "./prisma";
 import { redis } from "./redis";
 
 const MARKET_SOURCES = [
@@ -33,6 +33,7 @@ export class MarketAggregator {
     );
     this.sources.set(sourceId, [...existing, ...deduped]);
 
+    const prisma = await getPrisma();
     await prisma.marketData.createMany({
       data: deduped.map((d) => ({
         source: sourceId,
@@ -99,6 +100,7 @@ export class MarketAggregator {
 
     await redis.setex(cacheKey, 5, JSON.stringify(result));
 
+    const prisma = await getPrisma();
     await prisma.unifiedFeed.create({
       data: {
         symbol: result.symbol,
@@ -117,6 +119,7 @@ export class MarketAggregator {
   }
 
   async getAvailableSymbols() {
+    const prisma = await getPrisma();
     const symbols = await prisma.marketData.findMany({
       select: { symbol: true },
       distinct: ["symbol"],
@@ -125,6 +128,7 @@ export class MarketAggregator {
   }
 
   async getHistory(symbol, limit = 100) {
+    const prisma = await getPrisma();
     const data = await prisma.unifiedFeed.findMany({
       where: { symbol },
       orderBy: { timestamp: "desc" },

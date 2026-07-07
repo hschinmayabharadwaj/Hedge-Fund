@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 
 export async function GET() {
   const session = await auth();
@@ -8,6 +8,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const prisma = await getPrisma();
   const agents = await prisma.agentConfig.findMany({
     where: { userId: session.user.id },
     select: {
@@ -35,6 +36,7 @@ export async function POST(req) {
     return NextResponse.json({ error: "Agent name required" }, { status: 400 });
   }
 
+  const prisma = await getPrisma();
   const existing = await prisma.agentConfig.findFirst({
     where: { userId: session.user.id, name },
   });

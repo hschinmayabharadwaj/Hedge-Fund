@@ -1,5 +1,5 @@
 import { hash } from "bcryptjs";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limiter";
 
 export async function POST(req) {
@@ -15,6 +15,8 @@ export async function POST(req) {
     if (!email || !password) {
       return Response.json({ error: "Email and password required" }, { status: 400 });
     }
+
+    const prisma = await getPrisma();
 
     const exists = await prisma.user.findUnique({ where: { email } });
     if (exists) {

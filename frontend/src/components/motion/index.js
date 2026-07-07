@@ -2,25 +2,39 @@
 
 import { motion, AnimatePresence, useReducedMotion, LayoutGroup } from "framer-motion";
 
-/* ── Spring presets (21st.dev-style snappy UI) ── */
-export const springSnappy = { type: "spring", stiffness: 400, damping: 30 };
-export const springSoft = { type: "spring", stiffness: 260, damping: 28 };
-export const springBounce = { type: "spring", stiffness: 300, damping: 22, mass: 0.8 };
-export const easeOut = { duration: 0.45, ease: [0.22, 1, 0.36, 1] };
-export const easeInOut = { duration: 0.35, ease: [0.4, 0, 0.2, 1] };
+/* ── Modern Animation Presets ── */
+export const springSnappy = { type: "spring", stiffness: 420, damping: 25, mass: 0.8 };
+export const springSoft = { type: "spring", stiffness: 280, damping: 30, mass: 0.9 };
+export const springBounce = { type: "spring", stiffness: 320, damping: 20, mass: 0.7 };
+export const springGlass = { type: "spring", stiffness: 350, damping: 28, mass: 0.85 };
+export const easeOutExpo = { duration: 0.6, ease: [0.22, 1, 0.36, 1] };
+export const easeInOutExpo = { duration: 0.5, ease: [0.4, 0, 0.2, 1] };
+export const easeSmooth = { duration: 0.7, ease: [0.32, 0, 0.07, 1] };
+export const easeBounce = { duration: 0.8, ease: [0.68, -0.6, 0.32, 1.6] };
 
 export const pageTransition = {
-  initial: { opacity: 0, y: 14, filter: "blur(8px)" },
-  animate: { opacity: 1, y: 0, filter: "blur(0px)" },
-  exit: { opacity: 0, y: -10, filter: "blur(6px)" },
-  transition: easeOut,
+  initial: { opacity: 0, y: 20, scale: 0.98, filter: "blur(10px)" },
+  animate: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" },
+  exit: { opacity: 0, y: -15, scale: 0.98, filter: "blur(8px)" },
+  transition: easeSmooth,
+};
+
+export const cardHover = {
+  whileHover: { 
+    y: -6, 
+    scale: 1.02,
+    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(125, 211, 252, 0.15)",
+    backgroundColor: "rgba(30, 42, 62, 0.9)"
+  },
+  whileTap: { scale: 0.98, y: -2 },
+  transition: springGlass
 };
 
 export const staggerContainer = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.07, delayChildren: 0.05 },
+    transition: { staggerChildren: 0.08, delayChildren: 0.06 },
   },
 };
 
@@ -28,27 +42,64 @@ export const staggerContainerFast = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.04, delayChildren: 0.02 },
+    transition: { staggerChildren: 0.05, delayChildren: 0.03 },
+  },
+};
+
+export const staggerContainerDeluxe = {
+  hidden: { opacity: 0, y: 10 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { staggerChildren: 0.1, delayChildren: 0.08 },
   },
 };
 
 export const staggerItem = {
-  hidden: { opacity: 0, y: 18, scale: 0.97 },
+  hidden: { opacity: 0, y: 15, scale: 0.95, rotateX: 5 },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
+    rotateX: 0,
     transition: springSoft,
   },
 };
 
+export const staggerItemFloat = {
+  hidden: { opacity: 0, y: 20, scale: 0.9 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { ...springBounce, delay: 0.1 },
+  },
+};
+
 export const tableRow = {
-  hidden: { opacity: 0, x: -8 },
+  hidden: { opacity: 0, x: -12, scale: 0.98 },
   show: (i) => ({
     opacity: 1,
     x: 0,
-    transition: { delay: i * 0.04, ...springSoft },
+    scale: 1,
+    transition: { 
+      delay: i * 0.05, 
+      type: "spring", 
+      stiffness: 300, 
+      damping: 25,
+      mass: 0.8 
+    },
   }),
+};
+
+export const glassEffect = {
+  whileHover: {
+    backdropFilter: "blur(40px) saturate(220%)",
+    backgroundColor: "rgba(35, 48, 70, 0.9)",
+    borderColor: "rgba(125, 211, 252, 0.25)",
+    boxShadow: "0 25px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(125, 211, 252, 0.2), inset 0 0 20px rgba(125, 211, 252, 0.05)"
+  },
+  transition: springGlass
 };
 
 export function MotionPage({ children, className = "" }) {
@@ -99,15 +150,31 @@ export function FadeIn({ children, className = "", delay = 0 }) {
       className={className}
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ ...easeOut, delay }}
+      transition={{ ...easeOutExpo, delay }}
     >
       {children}
     </motion.div>
   );
 }
 
-export function MotionButton({ children, className = "", onClick, type = "button", ...props }) {
+export function MotionButton({ children, className = "", onClick, type = "button", variant = "default", ...props }) {
   const reduced = useReducedMotion();
+  
+  const variants = {
+    default: {
+      whileHover: { scale: 1.05, y: -2, boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4)" },
+      whileTap: { scale: 0.97, y: 0 }
+    },
+    glass: {
+      whileHover: { scale: 1.03, y: -2, backdropFilter: "blur(40px) saturate(200%)", backgroundColor: "rgba(30, 42, 62, 0.9)" },
+      whileTap: { scale: 0.98, y: 0 }
+    },
+    gradient: {
+      whileHover: { scale: 1.04, y: -2, boxShadow: "0 12px 40px rgba(52, 211, 153, 0.2)" },
+      whileTap: { scale: 0.96, y: 0 }
+    }
+  };
+
   if (reduced) {
     return (
       <button type={type} className={className} onClick={onClick} {...props}>
@@ -115,14 +182,17 @@ export function MotionButton({ children, className = "", onClick, type = "button
       </button>
     );
   }
+  
+  const variantConfig = variants[variant] || variants.default;
+  
   return (
     <motion.button
       type={type}
       className={className}
       onClick={onClick}
-      whileHover={{ scale: 1.02, y: -1 }}
-      whileTap={{ scale: 0.97 }}
-      transition={springSnappy}
+      whileHover={variantConfig.whileHover}
+      whileTap={variantConfig.whileTap}
+      transition={springGlass}
       {...props}
     >
       {children}
@@ -170,14 +240,19 @@ export function TableRow({ children, className = "", index = 0 }) {
       variants={tableRow}
       initial="hidden"
       animate="show"
-      whileHover={{ backgroundColor: "rgba(39, 54, 71, 0.5)" }}
+      whileHover={{ 
+        backgroundColor: "rgba(30, 42, 62, 0.6)",
+        scale: 1.002,
+        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(125, 211, 252, 0.1)"
+      }}
+      transition={springSoft}
     >
       {children}
     </motion.tr>
   );
 }
 
-export function AnimatedProgress({ width, className = "bg-secondary" }) {
+export function AnimatedProgress({ width, className = "bg-gradient-to-r from-secondary to-accent-teal" }) {
   const reduced = useReducedMotion();
   if (reduced) {
     return <div className={`h-full rounded-full ${className}`} style={{ width }} />;
@@ -185,9 +260,9 @@ export function AnimatedProgress({ width, className = "bg-secondary" }) {
   return (
     <motion.div
       className={`h-full rounded-full ${className}`}
-      initial={{ width: 0 }}
-      animate={{ width }}
-      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+      initial={{ width: 0, opacity: 0.8 }}
+      animate={{ width, opacity: 1 }}
+      transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
     />
   );
 }
@@ -246,6 +321,82 @@ export function SidebarNavItem({ isActive, onClick, children, className = "" }) 
       )}
       <span className="relative z-10 flex items-center gap-3 w-full">{children}</span>
     </motion.button>
+  );
+}
+
+export function HoverGlow({ children, className = "", glowColor = "rgba(125, 211, 252, 0.2)" }) {
+  const reduced = useReducedMotion();
+  if (reduced) return <div className={className}>{children}</div>;
+  
+  return (
+    <motion.div
+      className={className}
+      whileHover={{ 
+        boxShadow: `0 0 40px ${glowColor}`,
+        scale: 1.02
+      }}
+      transition={springGlass}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export function FloatAnimation({ children, className = "", intensity = 10 }) {
+  const reduced = useReducedMotion();
+  if (reduced) return <div className={className}>{children}</div>;
+  
+  return (
+    <motion.div
+      className={className}
+      animate={{ y: [0, -intensity, 0] }}
+      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export function ShimmerEffect({ children, className = "" }) {
+  const reduced = useReducedMotion();
+  if (reduced) return <div className={className}>{children}</div>;
+  
+  return (
+    <div className={`relative overflow-hidden ${className}`}>
+      {children}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+        animate={{ x: ["-100%", "200%"] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+      />
+    </div>
+  );
+}
+
+export function ScaleIn({ children, className = "", delay = 0 }) {
+  const reduced = useReducedMotion();
+  if (reduced) return <div className={className}>{children}</div>;
+  
+  return (
+    <motion.div
+      className={className}
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ ...springBounce, delay }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export function GradientBorder({ children, className = "", colors = ["#7DD3FC", "#34D399"] }) {
+  return (
+    <div className={`relative rounded-xl p-[2px] ${className}`}>
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary to-secondary opacity-60 blur-sm" />
+      <div className="relative bg-surface-container rounded-xl p-5">
+        {children}
+      </div>
+    </div>
   );
 }
 
