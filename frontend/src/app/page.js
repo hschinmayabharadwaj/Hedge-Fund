@@ -49,29 +49,45 @@ const ARCHITECTURE_ITEMS = [
   },
 ];
 
+const PARTICLE_COUNT = 20;
+
+const PARTICLES = Array.from({ length: PARTICLE_COUNT }, (_, index) => {
+  const x = (index * 37) % 100;
+  const y = (index * 53) % 100;
+  const drift = ((index * 29) % 50) - 25;
+
+  return {
+    x: `${x}%`,
+    y: `${y}%`,
+    drift: `${drift}vw`,
+    duration: 20 + (index % 10),
+    delay: (index % 5) * 0.6,
+  };
+});
+
 const ParticleBackground = () => {
   const reduced = useReducedMotion();
   if (reduced) return null;
   
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
-      {[...Array(20)].map((_, i) => (
+      {PARTICLES.map((particle, i) => (
         <motion.div
           key={i}
           className="absolute w-1 h-1 bg-primary/30 rounded-full"
           initial={{
-            x: Math.random() * 100 + '%',
-            y: Math.random() * 100 + '%',
+            x: particle.x,
+            y: particle.y,
           }}
           animate={{
             y: [null, '-20vh', '100vh'],
-            x: [null, `${Math.random() * 50 - 25}vw`],
+            x: [null, particle.drift],
           }}
           transition={{
-            duration: Math.random() * 20 + 20,
+            duration: particle.duration,
             repeat: Infinity,
             ease: "linear",
-            delay: Math.random() * 5,
+            delay: particle.delay,
           }}
         />
       ))}
@@ -314,7 +330,7 @@ export default function Home() {
       >
         <div className="max-w-[var(--spacing-container-max)] mx-auto px-spacing-xl text-center">
           <p className="text-body-sm text-on-surface-variant">
-            © {new Date().getFullYear()} AlphaEdge Capital. All rights reserved.
+            © 2026 AlphaEdge Capital. All rights reserved.
             <span className="mx-2">•</span>
             AI-Powered Institutional Trading Platform
           </p>
