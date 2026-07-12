@@ -6,17 +6,17 @@ from sqlalchemy import (
     Column, Integer, String, Boolean, DateTime, Text,
     ForeignKey, Table, Enum as SQLEnum, JSON, Index
 )
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, DeclarativeBase
 from sqlalchemy.sql import func
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 import enum
 
 from app.core.security import encryption_service, password_service
 
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 
 # Association table for user roles
@@ -168,7 +168,7 @@ class User(Base):
     
     def is_locked(self) -> bool:
         """Check if account is locked"""
-        if self.locked_until and self.locked_until > datetime.utcnow():
+        if self.locked_until and self.locked_until > datetime.now(timezone.utc):
             return True
         return False
     
@@ -278,6 +278,26 @@ class UserSession(Base):
         Index('idx_session_user_active', 'user_id', 'is_active'),
         Index('idx_session_expires', 'expires_at'),
     )
+    
+    @property
+    def session_token(self) -> Optional[str]:
+        """Get session token"""
+        return self._session_token
+    
+    @session_token.setter
+    def session_token(self, value: Optional[str]):
+        """Set session token"""
+        self._session_token = value
+    
+    @property
+    def refresh_token(self) -> Optional[str]:
+        """Get refresh token"""
+        return self._refresh_token
+    
+    @refresh_token.setter
+    def refresh_token(self, value: Optional[str]):
+        """Set refresh token"""
+        self._refresh_token = value
 
 
 class AuditLog(Base):

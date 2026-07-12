@@ -284,7 +284,8 @@ class MarketDataService:
                     "type": info.get("quoteType", "")
                 }]
             return []
-        except:
+        except Exception as e:
+            logger.error(f"Error searching stocks for '{query}': {e}")
             return []
 
 

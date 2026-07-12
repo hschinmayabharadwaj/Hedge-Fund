@@ -4,8 +4,8 @@ Handles user registration, login, MFA, and token management
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from datetime import datetime, timedelta
+from sqlalchemy import select, update
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 import io
 import qrcode
@@ -234,13 +234,13 @@ async def login(
         refresh_token=refresh_token,
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("User-Agent"),
-        expires_at=datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     db.add(session)
     
     # Update user login info
-    user.last_login = datetime.utcnow()
-    user.last_activity = datetime.utcnow()
+    user.last_login = datetime.now(timezone.utc)
+    user.last_activity = datetime.now(timezone.utc)
     
     # Create audit log
     audit_log = AuditLog(
@@ -326,10 +326,10 @@ async def refresh_token(
     
     # Update session
     session.session_token = access_token
-    session.expires_at = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    session.last_activity = datetime.utcnow()
+    session.expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    session.last_activity = datetime.now(timezone.utc)
     
-    user.last_activity = datetime.utcnow()
+    user.last_activity = datetime.now(timezone.utc)
     
     await db.commit()
     
@@ -465,10 +465,10 @@ async def change_password(
     
     # Invalidate all sessions
     await db.execute(
-        select(UserSession).where(
+        update(UserSession).where(
             UserSession.user_id == user.id,
             UserSession.is_active == True
-        )
+        ).values(is_active=False)
     )
     
     # Create audit log

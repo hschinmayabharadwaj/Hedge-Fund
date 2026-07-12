@@ -111,8 +111,8 @@ app = FastAPI(
     title="Secure Backend API",
     description="Secure and scalable FastAPI backend with Kafka, Redis, and comprehensive security",
     version="1.0.0",
-    docs_url="/docs" if not get_settings().ENVIRONMENT == "production" else None,
-    redoc_url="/redoc" if not get_settings().ENVIRONMENT == "production" else None,
+    docs_url="/docs" if get_settings().ENVIRONMENT != "production" else None,
+    redoc_url="/redoc" if get_settings().ENVIRONMENT != "production" else None,
     lifespan=lifespan
 )
 
