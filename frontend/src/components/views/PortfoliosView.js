@@ -1,6 +1,8 @@
 "use client";
 
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
+import { motion } from "framer-motion";
+import { downloadTextFile } from "@/lib/download";
 import {
   Stagger,
   StaggerItem,
@@ -39,6 +41,24 @@ const ALLOCATION_LEGEND = [
 export default function PortfoliosView() {
   const reduced = useReducedMotion();
 
+  const handleExportReport = () => {
+    const lines = [
+      "AlphaEdge Capital - Portfolio Report",
+      "",
+      "Asset Allocation",
+      ...ALLOCATION_LEGEND.map((item) => item.label),
+      "",
+      "Top Positions",
+      ...POSITIONS.map((position) => `${position.asset}: ${position.weight} | ${position.value} | ${position.change}`),
+    ];
+
+    downloadTextFile("portfolio-report.txt", `${lines.join("\n")}\n`);
+  };
+
+  const handleAiSim = () => {
+    window.alert("AI simulation queued for the portfolio model.");
+  };
+
   return (
     <div>
       <FadeIn className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
@@ -51,10 +71,18 @@ export default function PortfoliosView() {
           </p>
         </div>
         <div className="flex gap-2">
-          <MotionButton className="bg-surface-container border border-outline-variant text-on-surface px-4 py-2 rounded text-label-uppercase hover:bg-surface-container-high transition-colors">
+          <MotionButton
+            type="button"
+            onClick={handleExportReport}
+            className="bg-surface-container border border-outline-variant text-on-surface px-4 py-2 rounded text-label-uppercase hover:bg-surface-container-high transition-colors"
+          >
             Export Report
           </MotionButton>
-          <MotionButton className="bg-secondary-container text-on-secondary-container px-4 py-2 rounded text-label-uppercase hover:bg-secondary hover:text-on-secondary transition-colors flex items-center gap-2">
+          <MotionButton
+            type="button"
+            onClick={handleAiSim}
+            className="bg-secondary-container text-on-secondary-container px-4 py-2 rounded text-label-uppercase hover:bg-secondary hover:text-on-secondary transition-colors flex items-center gap-2"
+          >
             <MaterialIcon name="auto_awesome" size={16} />
             AI Sim
           </MotionButton>
@@ -163,10 +191,10 @@ export default function PortfoliosView() {
         <div className="px-4 py-3 border-b border-outline-variant flex justify-between items-center bg-surface-container-high">
           <h3 className="text-body-md font-semibold text-on-surface">Top Positions</h3>
           <div className="flex gap-2">
-            <button className="text-on-surface-variant hover:text-on-surface transition-colors">
+            <button type="button" onClick={() => window.alert("Position filters opened.")} className="text-on-surface-variant hover:text-on-surface transition-colors">
               <MaterialIcon name="filter_list" size={18} />
             </button>
-            <button className="text-on-surface-variant hover:text-on-surface transition-colors">
+            <button type="button" onClick={() => window.alert("More position actions opened.")} className="text-on-surface-variant hover:text-on-surface transition-colors">
               <MaterialIcon name="more_vert" size={18} />
             </button>
           </div>

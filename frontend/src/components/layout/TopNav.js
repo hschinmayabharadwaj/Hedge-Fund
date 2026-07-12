@@ -9,9 +9,11 @@ const PROFILE_IMG =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuC0KIazcraWE4HYTtQC57Ry7JQtdS3cm8ICNtbk2IHYlGs882zeKtS64bhpWSpQ2FGtTwQCVY8R47hKfnaieHp7Yd56exlmgBe0lZtpHC3M2tVMTeqpExlSXQqeErML6lB7DTYuQf9wvHCOsk-vxGfhW3h7QO2qgD3xOOEXDrJ07kLGtfO_em7ISv5Km26jNW8hetAtGzKItTsb4k6cuKNZXIBtZB46aEw4KfEpwnqGW8FFZk6YI8jrcw";
 
 export default function TopNav({
+  activeView,
   searchPlaceholder,
   activeCategory = "Equities",
   onCategoryChange,
+  onNavigate,
   showSearch = true,
   showProfile = false,
   categoryStyle = "underline",
@@ -25,6 +27,8 @@ export default function TopNav({
     >
       <div className="flex items-center gap-6">
         <motion.button
+          type="button"
+          onClick={() => onNavigate?.("dashboard")}
           className="md:hidden text-on-surface-variant hover:text-primary"
           whileTap={{ scale: 0.9 }}
         >
@@ -61,6 +65,7 @@ export default function TopNav({
               {CATEGORIES.map((cat) => (
                 <motion.button
                   key={cat}
+                  type="button"
                   onClick={() => onCategoryChange?.(cat)}
                   className="text-on-surface-variant hover:text-primary transition-colors duration-200"
                   whileHover={{ y: -1 }}
@@ -90,6 +95,7 @@ export default function TopNav({
               return (
                 <button
                   key={cat}
+                  type="button"
                   onClick={() => onCategoryChange?.(cat)}
                   className={`h-full flex items-center text-label-uppercase transition-colors duration-200 border-b-2 pb-1 relative ${
                     isActive
@@ -116,6 +122,15 @@ export default function TopNav({
         {["account_balance", "grid_view", "refresh"].map((icon) => (
           <motion.button
             key={icon}
+            type="button"
+            onClick={() => {
+              if (icon === "refresh") {
+                window.location.reload();
+                return;
+              }
+
+              onNavigate?.(icon === "grid_view" ? "portfolios" : "dashboard");
+            }}
             className="hover:text-primary transition-colors duration-200"
             whileHover={{ scale: 1.1, rotate: icon === "refresh" ? 90 : 0 }}
             whileTap={{ scale: 0.9 }}

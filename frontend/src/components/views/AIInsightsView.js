@@ -1,6 +1,8 @@
 "use client";
 
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
+import { motion } from "framer-motion";
+import { downloadJsonFile } from "@/lib/download";
 import {
   Stagger,
   StaggerItem,
@@ -76,6 +78,18 @@ function scoreColor(item) {
 export default function AIInsightsView() {
   const reduced = useReducedMotion();
 
+  const handleModelParams = () => {
+    window.alert("Model parameter controls are available in the next engine release.");
+  };
+
+  const handleExportState = () => {
+    downloadJsonFile("ai-engine-state.json", {
+      sentiment: SENTIMENT,
+      signals: SIGNALS,
+      logEntries: LOG_ENTRIES,
+    });
+  };
+
   return (
     <div>
       <FadeIn className="flex justify-between items-end mb-6">
@@ -91,11 +105,19 @@ export default function AIInsightsView() {
           </h2>
         </div>
         <div className="flex gap-2">
-          <MotionButton className="px-3 py-1.5 bg-surface-container border border-outline-variant text-on-surface text-label-uppercase rounded hover:bg-surface-variant transition-colors flex items-center gap-2">
+          <MotionButton
+            type="button"
+            onClick={handleModelParams}
+            className="px-3 py-1.5 bg-surface-container border border-outline-variant text-on-surface text-label-uppercase rounded hover:bg-surface-variant transition-colors flex items-center gap-2"
+          >
             <MaterialIcon name="tune" size={16} />
             Model Params
           </MotionButton>
-          <MotionButton className="px-3 py-1.5 bg-primary/10 border border-primary/30 text-primary text-label-uppercase rounded hover:bg-primary/20 transition-colors flex items-center gap-2">
+          <MotionButton
+            type="button"
+            onClick={handleExportState}
+            className="px-3 py-1.5 bg-primary/10 border border-primary/30 text-primary text-label-uppercase rounded hover:bg-primary/20 transition-colors flex items-center gap-2"
+          >
             <MaterialIcon name="download" size={16} />
             Export State
           </MotionButton>

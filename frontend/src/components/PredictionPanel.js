@@ -48,6 +48,7 @@ export default function PredictionPanel() {
           className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm w-24 focus:outline-none focus:border-blue-500"
         />
         <button
+          type="button"
           onClick={getPrediction}
           disabled={loading}
           className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm px-3 py-1 rounded font-medium"
@@ -81,6 +82,7 @@ export default function PredictionPanel() {
 
       <div className="border-t border-gray-700 pt-3 mt-2">
         <button
+          type="button"
           onClick={startTraining}
           disabled={training}
           className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 text-white text-sm px-3 py-2 rounded font-medium"

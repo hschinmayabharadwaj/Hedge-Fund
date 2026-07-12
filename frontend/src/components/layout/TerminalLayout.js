@@ -27,9 +27,11 @@ export default function TerminalLayout({
       <Sidebar activeView={activeView} onNavigate={onNavigate} />
       <main className="flex-1 md:ml-[280px] flex flex-col min-h-screen">
         <TopNav
+          activeView={activeView}
           searchPlaceholder={searchPlaceholder}
           activeCategory={activeCategory}
           onCategoryChange={onCategoryChange}
+          onNavigate={onNavigate}
           showSearch={navVariant.showSearch}
           showProfile={navVariant.showProfile}
           categoryStyle={navVariant.categoryStyle}

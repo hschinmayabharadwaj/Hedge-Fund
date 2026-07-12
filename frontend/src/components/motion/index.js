@@ -299,13 +299,14 @@ export function SidebarNavItem({ isActive, onClick, children, className = "" }) 
   const reduced = useReducedMotion();
   if (reduced) {
     return (
-      <button onClick={onClick} className={className}>
+      <button type="button" onClick={onClick} className={className}>
         {children}
       </button>
     );
   }
   return (
     <motion.button
+      type="button"
       onClick={onClick}
       className={`relative ${className}`}
       whileHover={{ x: 3 }}

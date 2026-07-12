@@ -108,6 +108,11 @@ function OrderBookRow({ size, price, depth, side, index = 0 }) {
 
 export default function MarketLiveView() {
   const [timeframe, setTimeframe] = useState("1M");
+  const [chartMode, setChartMode] = useState("candles");
+  const [alertFilter, setAlertFilter] = useState(false);
+  const [tradeIntent, setTradeIntent] = useState("");
+
+  const visibleAlerts = alertFilter ? ALERTS.filter((alert) => alert.tag === "Volatility Spike") : ALERTS;
 
   return (
     <Stagger className="grid grid-cols-1 xl:grid-cols-12 gap-unit md:gap-gutter max-w-[var(--spacing-container-max)] mx-auto w-full">
@@ -151,6 +156,7 @@ export default function MarketLiveView() {
               {TIMEFRAMES.map((tf) => (
                 <button
                   key={tf}
+                  type="button"
                   onClick={() => setTimeframe(tf)}
                   className={`relative px-2 py-1 text-[10px] font-label-uppercase transition-colors rounded z-10 ${
                     timeframe === tf
@@ -170,10 +176,26 @@ export default function MarketLiveView() {
               ))}
             </div>
             <div className="flex gap-2">
-              <button className="h-6 w-6 flex items-center justify-center bg-surface-container-highest rounded border border-outline-variant hover:bg-surface-variant text-on-surface-variant">
+              <button
+                type="button"
+                onClick={() => setChartMode("candles")}
+                className={`h-6 w-6 flex items-center justify-center rounded border transition-colors ${
+                  chartMode === "candles"
+                    ? "bg-primary/15 border-primary text-primary"
+                    : "bg-surface-container-highest border-outline-variant hover:bg-surface-variant text-on-surface-variant"
+                }`}
+              >
                 <MaterialIcon name="candlestick_chart" size={14} />
               </button>
-              <button className="h-6 w-6 flex items-center justify-center bg-surface-container-highest rounded border border-outline-variant hover:bg-surface-variant text-on-surface-variant">
+              <button
+                type="button"
+                onClick={() => setChartMode("line")}
+                className={`h-6 w-6 flex items-center justify-center rounded border transition-colors ${
+                  chartMode === "line"
+                    ? "bg-secondary/15 border-secondary text-secondary"
+                    : "bg-surface-container-highest border-outline-variant hover:bg-surface-variant text-on-surface-variant"
+                }`}
+              >
                 <MaterialIcon name="show_chart" size={14} />
               </button>
             </div>
@@ -248,13 +270,26 @@ export default function MarketLiveView() {
             </table>
           </div>
           <div className="p-3 border-t border-outline-variant flex gap-2">
-            <MotionButton className="flex-1 bg-error-container/20 text-error border border-error/50 hover:bg-error-container/40 text-label-uppercase text-[11px] py-1.5 rounded transition-colors">
+            <MotionButton
+              type="button"
+              onClick={() => setTradeIntent("Sell (Short) order staged")}
+              className="flex-1 bg-error-container/20 text-error border border-error/50 hover:bg-error-container/40 text-label-uppercase text-[11px] py-1.5 rounded transition-colors"
+            >
               Sell (Short)
             </MotionButton>
-            <MotionButton className="flex-1 bg-secondary-container/20 text-secondary border border-secondary/50 hover:bg-secondary-container/40 text-label-uppercase text-[11px] py-1.5 rounded transition-colors">
+            <MotionButton
+              type="button"
+              onClick={() => setTradeIntent("Buy (Long) order staged")}
+              className="flex-1 bg-secondary-container/20 text-secondary border border-secondary/50 hover:bg-secondary-container/40 text-label-uppercase text-[11px] py-1.5 rounded transition-colors"
+            >
               Buy (Long)
             </MotionButton>
           </div>
+          {tradeIntent && (
+            <div className="px-3 pb-3 text-[11px] text-on-surface-variant">
+              {tradeIntent}
+            </div>
+          )}
         </div>
 
         <div className="bg-surface-container border-t-2 border-t-primary border-x border-b border-outline-variant rounded flex flex-col flex-1 min-h-[300px] relative overflow-hidden">
@@ -264,12 +299,12 @@ export default function MarketLiveView() {
               <MaterialIcon name="psychology" size={16} />
               Smart Alerts
             </h3>
-            <button className="text-on-surface-variant hover:text-primary transition-colors">
+            <button type="button" onClick={() => setAlertFilter((current) => !current)} className="text-on-surface-variant hover:text-primary transition-colors">
               <MaterialIcon name="filter_list" size={16} />
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-3 relative z-10">
-            {ALERTS.map((alert, i) => (
+            {visibleAlerts.map((alert, i) => (
               <motion.div
                 key={alert.tag}
                 className="bg-surface-container-highest p-3 rounded border border-outline-variant"

@@ -29,6 +29,12 @@ function SidebarMotion({ children, className }) {
 }
 
 export default function Sidebar({ activeView, onNavigate }) {
+  const utilityItems = [
+    { icon: "notifications_active", label: "Market Alerts", badge: 3, target: "market-live" },
+    { icon: "settings", label: "Settings", target: "portfolios" },
+    { icon: "help", label: "Documentation", target: "ai-insights" },
+  ];
+
   return (
     <SidebarMotion className="hidden md:flex glass-elevated gradient-border fixed left-0 top-0 h-full w-[280px] flex-col py-spacing-xl z-40">
       {/* Logo & Brand */}
@@ -140,13 +146,11 @@ export default function Sidebar({ activeView, onNavigate }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        {[
-          { icon: "notifications_active", label: "Market Alerts", badge: 3 },
-          { icon: "settings", label: "Settings" },
-          { icon: "help", label: "Documentation" },
-        ].map((item) => (
+        {utilityItems.map((item) => (
           <motion.button
             key={item.label}
+            type="button"
+            onClick={() => onNavigate?.(item.target)}
             className="group relative flex items-center gap-3 px-4 py-3 rounded-xl w-full text-left hover-lift hover-glow"
             whileHover={{ x: 3, scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -178,6 +182,8 @@ export default function Sidebar({ activeView, onNavigate }) {
         transition={{ delay: 0.6, ...springGlass }}
       >
         <motion.button
+          type="button"
+          onClick={() => onNavigate?.("ai-insights")}
           className="w-full bg-gradient-secondary text-on-secondary-container hover:shadow-lg py-3 rounded-xl text-label-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 relative overflow-hidden group"
           whileHover={{ scale: 1.03, y: -2 }}
           whileTap={{ scale: 0.98 }}
