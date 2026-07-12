@@ -86,6 +86,7 @@ export function TimeframeToggle({ options, value, onChange, size = "sm" }) {
         return (
           <motion.button
             key={tf}
+            type="button"
             onClick={() => onChange(tf)}
             className={`relative ${sizeClasses} font-medium rounded-lg transition-colors z-10 ${
               isActive ? "text-on-surface" : "text-on-surface-variant hover:text-on-surface"
