@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
+import { useRouter } from "next/navigation";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { motion, useReducedMotion } from "framer-motion";
 import { springGlass } from "@/components/motion";
@@ -97,6 +99,12 @@ const ParticleBackground = () => {
 
 export default function Home() {
   const reduced = useReducedMotion();
+  const router = useRouter();
+  const architectureRef = useRef(null);
+
+  const scrollToArchitecture = () => {
+    architectureRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
@@ -201,6 +209,8 @@ export default function Home() {
             transition={{ delay: 0.7 }}
           >
             <motion.button 
+              type="button"
+              onClick={() => router.push("/login")}
               className="px-6 py-3 bg-gradient-primary text-on-primary rounded-xl text-title-md font-semibold hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
@@ -210,6 +220,8 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </motion.button>
             <motion.button 
+              type="button"
+              onClick={scrollToArchitecture}
               className="glass-surface px-6 py-3 text-on-surface rounded-xl text-title-md font-semibold hover-lift hover-glow group relative overflow-hidden"
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
@@ -254,7 +266,11 @@ export default function Home() {
                 <h3 className="text-title-md font-semibold text-on-surface mb-2">{card.title}</h3>
                 <p className="text-body-sm text-on-surface-variant">{card.desc}</p>
                 <div className="mt-4 pt-4 border-t border-outline-variant/30">
-                  <button className="text-label-md text-primary hover:text-secondary flex items-center gap-1 group-hover:gap-2 transition-all duration-300">
+                  <button
+                    type="button"
+                    onClick={scrollToArchitecture}
+                    className="text-label-md text-primary hover:text-secondary flex items-center gap-1 group-hover:gap-2 transition-all duration-300"
+                  >
                     Learn more
                     <MaterialIcon name="arrow_forward" size={16} />
                   </button>
@@ -266,6 +282,7 @@ export default function Home() {
 
         {/* Architecture Section */}
         <motion.div 
+          ref={architectureRef}
           className="glass-elevated rounded-2xl p-8"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}

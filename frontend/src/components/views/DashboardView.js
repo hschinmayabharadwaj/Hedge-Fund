@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   AreaChart,
   Area,
@@ -13,6 +14,7 @@ import {
 } from "recharts";
 import { Card, StatusDot, TimeframeToggle, MetricCard, ChartCard } from "@/components/ui/Card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
+import { downloadTextFile } from "@/lib/download";
 import {
   Stagger,
   StaggerItem,
@@ -76,6 +78,27 @@ const TIMEFRAMES = ["1D", "1W", "1M", "YTD"];
 export default function DashboardView() {
   const [timeframe, setTimeframe] = useState("1M");
 
+  const handleExportReport = () => {
+    const summaryLines = [
+      "AlphaEdge Capital - Portfolio Command Export",
+      "",
+      "KPIs",
+      ...KPI_DATA.map((kpi) => `${kpi.label}: ${kpi.value} (${kpi.change})`),
+      "",
+      "Holdings",
+      ...HOLDINGS.map((holding) => `${holding.ticker}: ${holding.position}M | ${holding.last} | ${holding.pnl}`),
+      "",
+      "Feeds",
+      ...FEEDS.map((feed) => `${feed.name}: ${feed.ping}`),
+    ];
+
+    downloadTextFile("portfolio-command-report.txt", `${summaryLines.join("\n")}\n`);
+  };
+
+  const handleHoldingAction = (holding) => {
+    window.alert(`${holding.action} request opened for ${holding.ticker}.`);
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -89,7 +112,11 @@ export default function DashboardView() {
             <span>Last updated: 09:42:15 NYT</span>
           </p>
         </div>
-        <MotionButton className="glass-surface px-4 py-2 text-label-lg text-on-surface hover-lift hover-glow group relative overflow-hidden">
+        <MotionButton
+          type="button"
+          onClick={handleExportReport}
+          className="glass-surface px-4 py-2 text-label-lg text-on-surface hover-lift hover-glow group relative overflow-hidden"
+        >
           <MaterialIcon name="download" size={18} className="mr-2" />
           Export Report
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -249,10 +276,10 @@ export default function DashboardView() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <button className="p-2 rounded-lg hover:bg-surface-container-low transition-colors">
+                <button type="button" onClick={() => window.alert("Holdings filter panel opened.")} className="p-2 rounded-lg hover:bg-surface-container-low transition-colors">
                   <MaterialIcon name="filter_list" size={18} className="text-on-surface-variant" />
                 </button>
-                <button className="p-2 rounded-lg hover:bg-surface-container-low transition-colors">
+                <button type="button" onClick={() => window.alert("Holdings sort options opened.")} className="p-2 rounded-lg hover:bg-surface-container-low transition-colors">
                   <MaterialIcon name="sort" size={18} className="text-on-surface-variant" />
                 </button>
               </div>
@@ -300,6 +327,8 @@ export default function DashboardView() {
                       </td>
                       <td className="py-3 px-5 text-center">
                         <motion.button
+                          type="button"
+                          onClick={() => handleHoldingAction(h)}
                           className={`px-3 py-1.5 rounded-lg border text-label-sm font-medium transition-colors ${
                             h.positive 
                               ? "bg-secondary/10 border-secondary/30 text-secondary hover:bg-secondary/20" 
