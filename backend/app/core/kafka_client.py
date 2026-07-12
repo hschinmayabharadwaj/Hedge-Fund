@@ -7,7 +7,7 @@ from confluent_kafka import Producer, Consumer, KafkaError, KafkaException
 from confluent_kafka.admin import AdminClient, NewTopic
 import json
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 from contextlib import asynccontextmanager
 
@@ -64,7 +64,7 @@ class KafkaProducerService:
                 'error': str(err),
                 'topic': msg.topic(),
                 'partition': msg.partition(),
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             })
         else:
             logger.debug(
@@ -76,7 +76,7 @@ class KafkaProducerService:
                 'topic': msg.topic(),
                 'partition': msg.partition(),
                 'offset': msg.offset(),
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             })
     
     def _encrypt_message(self, message: Dict[str, Any]) -> str:
@@ -118,7 +118,7 @@ class KafkaProducerService:
             message = {
                 'data': value,
                 'metadata': {
-                    'timestamp': datetime.utcnow().isoformat(),
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
                     'encrypted': encrypt,
                     'version': '1.0'
                 }

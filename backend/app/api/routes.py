@@ -4,9 +4,9 @@ Demonstrates RBAC, rate limiting, input validation, and audit logging
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Security
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import get_db
 from app.core.security import get_current_user, require_admin, TokenData
@@ -58,8 +58,8 @@ async def list_users(
     users = result.scalars().all()
     
     # Get total count
-    count_result = await db.execute(select(User))
-    total = len(count_result.scalars().all())
+    count_result = await db.execute(select(func.count()).select_from(User))
+    total = count_result.scalar_one()
     
     return {
         "users": [user.to_dict() for user in users],
@@ -145,7 +145,7 @@ async def delete_user(
         )
     
     # Soft delete
-    user.deleted_at = datetime.utcnow()
+    user.deleted_at = datetime.now(timezone.utc)
     user.status = "deleted"
     
     # Create audit log
@@ -199,7 +199,7 @@ async def send_message(
         **message.value,
         "_user_id": current_user.user_id,
         "_username": current_user.username,
-        "_timestamp": datetime.utcnow().isoformat()
+        "_timestamp": datetime.now(timezone.utc).isoformat()
     }
     
     # Send to Kafka
@@ -321,8 +321,8 @@ async def get_audit_logs(
     logs = result.scalars().all()
     
     # Get total count
-    count_result = await db.execute(select(AuditLog))
-    total = len(count_result.scalars().all())
+    count_result = await db.execute(select(func.count()).select_from(AuditLog))
+    total = count_result.scalar_one()
     
     return {
         "logs": [
@@ -374,8 +374,8 @@ async def get_security_events(
     events = result.scalars().all()
     
     # Get total count
-    count_result = await db.execute(select(SecurityEvent))
-    total = len(count_result.scalars().all())
+    count_result = await db.execute(select(func.count()).select_from(SecurityEvent))
+    total = count_result.scalar_one()
     
     return {
         "events": [
@@ -408,5 +408,5 @@ async def health_check():
     """
     return {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
