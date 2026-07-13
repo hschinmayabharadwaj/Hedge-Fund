@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import {
   AreaChart,
   Area,
@@ -26,6 +25,7 @@ import {
   staggerContainerDeluxe,
   staggerItemFloat,
   springGlass,
+  motion,
 } from "@/components/motion";
 
 const KPI_DATA = [

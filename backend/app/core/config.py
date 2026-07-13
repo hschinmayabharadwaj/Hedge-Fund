@@ -32,7 +32,9 @@ class Settings(BaseSettings):
     # Database Configuration
     DATABASE_URL: str = Field(..., description="PostgreSQL connection URL")
     DATABASE_POOL_SIZE: int = Field(default=20, ge=5, le=100)
-    DATABASE_MAX_OVERFLOW: int = Field(default=10, ge=0, le=50)
+    DATABASE_MAX_OVERFLOW: int = Field(default=10, ge=0, le=200)
+    DATABASE_POOL_TIMEOUT: int = Field(default=10, ge=1, le=60)
+    DATABASE_POOL_RECYCLE: int = Field(default=3600, ge=300, le=86400)
     
     # Redis Configuration
     REDIS_URL: str = Field(..., description="Redis connection URL")

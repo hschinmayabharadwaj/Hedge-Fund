@@ -8,8 +8,9 @@ import {
   FadeIn,
   MotionButton,
   PulseDot,
+  motion,
+  useReducedMotion,
 } from "@/components/motion";
-import { motion, useReducedMotion } from "framer-motion";
 
 const AAPL_LOGO =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuDKJzKayOIljdIPVmcZxoURT3RXOPBvJncvTS2eQc5uk5cVYd2ijKdzwJZXo0E1Ir5Wv8dNSCP3iEc0LR0BDCrAVVGZBw6gk_OX_huE1HpAMyzBcENQU1ucy_TcKhnJkDKTJvT9-e1icvnYw_RY2SjMMMwZzKfUQu9KMnAyTXTY4LBPO5khDEw9TJrJeAz1TccYmC4HBRvnxJtN9cVFI-Yye56l-T1Ji95m-hLFdOLi-1OHVRpi6WSX6g";

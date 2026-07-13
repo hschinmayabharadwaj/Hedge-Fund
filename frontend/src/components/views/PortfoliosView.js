@@ -1,7 +1,6 @@
 "use client";
 
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
-import { motion } from "framer-motion";
 import { downloadTextFile } from "@/lib/download";
 import {
   Stagger,
@@ -10,8 +9,9 @@ import {
   MotionButton,
   TableRow,
   AnimatedProgress,
+  motion,
+  useReducedMotion,
 } from "@/components/motion";
-import { motion, useReducedMotion } from "framer-motion";
 
 const POSITIONS = [
   { asset: "AAPL", dot: "bg-secondary", classLabel: "Equity", weight: "8.4%", value: "$104.2M", change: "+1.24%", positive: true, trendIcon: "show_chart" },

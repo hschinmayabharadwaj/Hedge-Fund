@@ -1,3 +1,11 @@
+// NOTE: This API route is currently unused in the frontend.
+// It was created for agent management but is not yet integrated.
+// Consider removing or integrating this route in the future.
+
+// NOTE: This API route is currently unused in the frontend.
+// It was created for agent management but is not yet integrated.
+// Consider removing or integrating this route in the future.
+
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";

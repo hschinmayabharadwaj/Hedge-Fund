@@ -1,7 +1,6 @@
 "use client";
 
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
-import { motion } from "framer-motion";
 import { downloadJsonFile } from "@/lib/download";
 import {
   Stagger,
@@ -11,8 +10,9 @@ import {
   TableRow,
   AnimatedProgress,
   PulseDot,
+  motion,
+  useReducedMotion,
 } from "@/components/motion";
-import { motion, useReducedMotion } from "framer-motion";
 
 const NEURAL_VIZ_URL =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuAZVm_0WpDqU68KG9aSqda37CBmyxZNyw3Uv8J8_yGO8FXY9SJ48d48Y04hLefsRKheNwOI8yrCaZ5-TMPGFd5EHAyBYZA1dV22sIdsMkCJcdl-3wgAaDjbOT_26gWFHqw4aOvuZY_-fhei4acOW6Qir7ZHHN-08cv2bnMCJYmVj-9VjDzU8MqGfynPQVSukPX2L9XYlhrWelskqazykNzPV_n0IjUTJ7KjG-smWnexT_ztJmT_Aqawsw";
