@@ -5,6 +5,7 @@ Secure, scalable backend with comprehensive security features
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
@@ -54,51 +55,55 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     settings = get_settings()
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
-    
+
     # Initialize database
     try:
         await init_db()
         logger.info("Database initialized")
     except Exception as e:
         logger.error(f"Failed to initialize database: {str(e)}")
-    
-    # Initialize Kafka
+
+    # Initialize Kafka (wrapped in executor to avoid blocking the event loop)
     try:
-        kafka_producer.initialize()
-        kafka_admin.initialize()
-        
+        import asyncio
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, kafka_producer.initialize)
+        await loop.run_in_executor(None, kafka_admin.initialize)
+
         # Create default topics
-        kafka_admin.create_topics([
-            "users", "messages", "events", "audit"
-        ])
+        await loop.run_in_executor(
+            None,
+            kafka_admin.create_topics,
+            ["users", "messages", "events", "audit"],
+        )
         logger.info("Kafka initialized")
     except Exception as e:
         logger.error(f"Failed to initialize Kafka: {str(e)}")
-    
+
     # Initialize rate limiter
     try:
         await rate_limiter.initialize()
         logger.info("Rate limiter initialized")
     except Exception as e:
         logger.error(f"Failed to initialize rate limiter: {str(e)}")
-    
+
     yield
-    
+
     # Cleanup
     logger.info("Shutting down...")
-    
+
     try:
         kafka_producer.close()
         logger.info("Kafka producer closed")
     except Exception as e:
         logger.error(f"Error closing Kafka producer: {str(e)}")
-    
+
     try:
         await rate_limiter.close()
         logger.info("Rate limiter closed")
     except Exception as e:
         logger.error(f"Error closing rate limiter: {str(e)}")
-    
+
     try:
         await close_db()
         logger.info("Database connection closed")
@@ -107,25 +112,30 @@ async def lifespan(app: FastAPI):
 
 
 # Create FastAPI app
+settings = get_settings()
+
 app = FastAPI(
     title="Secure Backend API",
     description="Secure and scalable FastAPI backend with Kafka, Redis, and comprehensive security",
     version="1.0.0",
-    docs_url="/docs" if get_settings().ENVIRONMENT != "production" else None,
-    redoc_url="/redoc" if get_settings().ENVIRONMENT != "production" else None,
-    lifespan=lifespan
+    docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
+    redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
+    lifespan=lifespan,
 )
 
 
+# GZip Compression — reduces response payload size and network latency
+app.add_middleware(GZipMiddleware, minimum_size=500)
+
+
 # CORS Middleware
-settings = get_settings()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
     allow_headers=["*"],
-    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"]
+    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
 )
 
 
@@ -133,71 +143,61 @@ app.add_middleware(
 if settings.ENVIRONMENT == "production":
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=["yourdomain.com", "*.yourdomain.com"]
+        allowed_hosts=["yourdomain.com", "*.yourdomain.com"],
     )
 
 
-# Request timing and metrics middleware
+# Unified middleware: timing + security headers + metrics + security event tracking
 @app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
-    """Add processing time header and collect metrics"""
+async def process_middleware(request: Request, call_next):
+    """
+    Single middleware that handles:
+    - Request timing
+    - Security headers
+    - Prometheus metrics
+    - Security event tracking
+    """
     start_time = time.time()
-    
+
     try:
         response = await call_next(request)
-        
-        # Add processing time header
+
         process_time = time.time() - start_time
         response.headers["X-Process-Time"] = str(process_time)
-        
+
         # Add security headers
         response = add_security_headers(response)
-        
+
         # Collect metrics
         REQUEST_COUNT.labels(
             method=request.method,
             endpoint=request.url.path,
-            status=response.status_code
+            status=response.status_code,
         ).inc()
-        
+
         REQUEST_DURATION.labels(
             method=request.method,
-            endpoint=request.url.path
+            endpoint=request.url.path,
         ).observe(process_time)
-        
+
+        # Security event tracking (merged from separate middleware)
+        if response.status_code == 401:
+            SECURITY_EVENTS.labels(event_type="auth_failure").inc()
+        elif response.status_code == 403:
+            SECURITY_EVENTS.labels(event_type="permission_denied").inc()
+        elif response.status_code == 429:
+            SECURITY_EVENTS.labels(event_type="rate_limit_exceeded").inc()
+
         return response
-        
+
     except Exception as e:
         logger.error(f"Request processing error: {str(e)}")
-        
-        # Record security event for 500 errors
         SECURITY_EVENTS.labels(event_type="internal_error").inc()
-        
+
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"detail": "Internal server error"}
+            content={"detail": "Internal server error"},
         )
-
-
-# Security event tracking middleware
-@app.middleware("http")
-async def security_event_tracker(request: Request, call_next):
-    """Track security events"""
-    response = await call_next(request)
-    
-    # Track failed authentication
-    if response.status_code == 401:
-        SECURITY_EVENTS.labels(event_type="auth_failure").inc()
-    
-    # Track permission denied
-    if response.status_code == 403:
-        SECURITY_EVENTS.labels(event_type="permission_denied").inc()
-    
-    # Track rate limiting
-    if response.status_code == 429:
-        SECURITY_EVENTS.labels(event_type="rate_limit_exceeded").inc()
-    
-    return response
 
 
 # Exception handlers
@@ -205,13 +205,13 @@ async def security_event_tracker(request: Request, call_next):
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Handle validation errors"""
     logger.warning(f"Validation error: {exc.errors()}")
-    
+
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "detail": "Validation error",
-            "errors": exc.errors()
-        }
+            "errors": exc.errors(),
+        },
     )
 
 
@@ -219,12 +219,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 async def global_exception_handler(request: Request, exc: Exception):
     """Handle all unhandled exceptions"""
     logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
-    
+
     SECURITY_EVENTS.labels(event_type="unhandled_exception").inc()
-    
+
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail": "Internal server error"}
+        content={"detail": "Internal server error"},
     )
 
 
@@ -240,7 +240,7 @@ async def metrics():
     """Expose Prometheus metrics"""
     return Response(
         content=generate_latest(),
-        media_type=CONTENT_TYPE_LATEST
+        media_type=CONTENT_TYPE_LATEST,
     )
 
 
@@ -252,28 +252,44 @@ async def root():
         "message": "Secure Backend API",
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,
-        "docs": "/docs" if settings.ENVIRONMENT != "production" else "disabled"
+        "docs": "/docs" if settings.ENVIRONMENT != "production" else "disabled",
     }
 
 
 # Health check
 @app.get("/health")
 async def health():
-    """Health check endpoint"""
+    """Health check endpoint with pool status"""
+    from app.core.database import get_engine
+
+    pool_info = {}
+    try:
+        engine = get_engine()
+        pool = engine.pool
+        pool_info = {
+            "pool_size": pool.size(),
+            "checked_out": pool.checkedout(),
+            "overflow": pool.overflow(),
+            "idle": pool.checkedin(),
+        }
+    except Exception:
+        pool_info = {"error": "pool unavailable"}
+
     return {
         "status": "healthy",
-        "timestamp": time.time()
+        "timestamp": time.time(),
+        "database_pool": pool_info,
     }
 
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
         port=8000,
         reload=settings.DEBUG,
         workers=1 if settings.DEBUG else 4,
-        log_level=settings.LOG_LEVEL.lower()
+        log_level=settings.LOG_LEVEL.lower(),
     )
