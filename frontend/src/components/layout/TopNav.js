@@ -2,6 +2,9 @@
 
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { motion, AnimatePresence, LayoutGroup } from "@/components/motion";
+import { CommandPalette } from "@/components/ui/CommandPalette";
+import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher";
+import { toast } from "@/components/ui/Toaster";
 
 const CATEGORIES = ["Equities", "Forex", "Crypto", "Fixed Income"];
 
@@ -18,6 +21,20 @@ export default function TopNav({
   showProfile = false,
   categoryStyle = "underline",
 }) {
+  const handleRefresh = () => {
+    toast.promise(
+      new Promise((resolve) => setTimeout(() => {
+        window.location.reload();
+        resolve();
+      }, 500)),
+      {
+        loading: "Refreshing data...",
+        success: "Data refreshed!",
+        error: "Failed to refresh",
+      }
+    );
+  };
+
   return (
     <motion.header
       className="fixed top-0 right-0 w-full md:w-[calc(100%-240px)] z-30 bg-surface border-b border-outline-variant h-12 flex justify-between items-center px-margin-mobile md:px-margin-desktop"
@@ -45,14 +62,7 @@ export default function TopNav({
               exit={{ opacity: 0, width: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="relative focus-within:ring-1 focus-within:ring-secondary rounded overflow-hidden flex items-center bg-surface-container h-8 px-3 border border-outline-variant w-64">
-                <MaterialIcon name="search" size={16} className="text-on-surface-variant mr-2" />
-                <input
-                  type="text"
-                  placeholder={searchPlaceholder || "Search Ticker, Asset, ISIN..."}
-                  className="bg-transparent border-none p-0 text-on-surface text-body-sm focus:ring-0 w-full placeholder:text-on-surface-variant outline-none"
-                />
-              </div>
+              <CommandPalette />
             </motion.div>
           ) : (
             <motion.nav
@@ -119,13 +129,14 @@ export default function TopNav({
       )}
 
       <div className="flex items-center gap-4 text-on-surface-variant">
+        <ThemeSwitcher />
         {["account_balance", "grid_view", "refresh"].map((icon) => (
           <motion.button
             key={icon}
             type="button"
             onClick={() => {
               if (icon === "refresh") {
-                window.location.reload();
+                handleRefresh();
                 return;
               }
 
@@ -144,13 +155,14 @@ export default function TopNav({
             <motion.img
               key="profile"
               alt="Profile"
-              className="w-8 h-8 rounded-full ml-2 border border-outline-variant object-cover"
+              className="w-8 h-8 rounded-full ml-2 border border-outline-variant object-cover cursor-pointer"
               src={PROFILE_IMG}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
               whileHover={{ scale: 1.08 }}
               transition={{ type: "spring", stiffness: 400, damping: 22 }}
+              onClick={() => toast.info("Profile menu coming soon!")}
             />
           )}
         </AnimatePresence>

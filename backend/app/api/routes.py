@@ -68,6 +68,19 @@ async def list_users(
 
     next_cursor = users[-1].id if users and has_next else None
 
+    # Audit log for admin access
+    audit_log = AuditLog(
+        user_id=current_user.user_id,
+        action=AuditAction.READ,
+        resource_type="user",
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("User-Agent"),
+        success=True,
+        changes={"action": "list_users", "count": len(users)},
+    )
+    db.add(audit_log)
+    await db.commit()
+
     return {
         "users": [u.to_dict(fields=field_set) for u in users],
         "pagination": {
@@ -287,6 +300,19 @@ async def get_audit_logs(
 
     next_cursor = logs[-1].id if logs and has_next else None
 
+    # Audit log for admin access to audit logs
+    audit_log = AuditLog(
+        user_id=current_user.user_id,
+        action=AuditAction.READ,
+        resource_type="audit_log",
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("User-Agent"),
+        success=True,
+        changes={"action": "list_audit_logs", "count": len(logs)},
+    )
+    db.add(audit_log)
+    await db.commit()
+
     return {
         "logs": [
             {
@@ -338,6 +364,19 @@ async def get_security_events(
     total = (await db.execute(count_q)).scalar_one()
 
     next_cursor = events[-1].id if events and has_next else None
+
+    # Audit log for admin access to security events
+    audit_log = AuditLog(
+        user_id=current_user.user_id,
+        action=AuditAction.READ,
+        resource_type="security_event",
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("User-Agent"),
+        success=True,
+        changes={"action": "list_security_events", "count": len(events)},
+    )
+    db.add(audit_log)
+    await db.commit()
 
     return {
         "events": [

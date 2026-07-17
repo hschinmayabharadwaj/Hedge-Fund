@@ -339,6 +339,10 @@ async def require_admin(
 def add_security_headers(response):
     """Add security headers to response"""
     settings = get_settings()
+
+    # Defensive: never let header injection create invalid responses
+    # (response.headers is guaranteed by Starlette/FastAPI)
+
     
     if settings.ENABLE_HSTS:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
@@ -346,12 +350,14 @@ def add_security_headers(response):
     if settings.ENABLE_CSP:
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-            "style-src 'self' 'unsafe-inline'; "
+            "script-src 'self'; "
+            "style-src 'self'; "
             "img-src 'self' data: https:; "
             "font-src 'self' data:; "
             "connect-src 'self'; "
-            "frame-ancestors 'none';"
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self';"
         )
     
     if settings.ENABLE_X_FRAME_OPTIONS:
