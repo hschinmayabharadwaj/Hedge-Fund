@@ -11,7 +11,8 @@ from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
 import logging
 import time
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+import uuid
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 from starlette.responses import Response
 
 from app.core.config import get_settings
@@ -24,12 +25,27 @@ from app.api.routes import router as api_router
 from app.api.market import router as market_router
 
 
-# Configure logging
+# Configure logging with request-id support
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - [%(request_id)s] %(message)s',
+    defaults={"request_id": "-"},
 )
 logger = logging.getLogger(__name__)
+
+
+class RequestIdFilter(logging.Filter):
+    """Inject request_id into every log record via thread-local contextvars."""
+    _ctx_var = __import__("contextvars").ContextVar("request_id", default="-")
+
+    def filter(self, record):
+        record.request_id = self._ctx_var.get()
+        return True
+
+
+# Attach the filter to the root logger so every module benefits
+_root = logging.getLogger()
+_root.addFilter(RequestIdFilter())
 
 
 # Prometheus metrics
@@ -47,6 +63,10 @@ SECURITY_EVENTS = Counter(
     'security_events_total',
     'Total security events',
     ['event_type']
+)
+IN_FLIGHT = Gauge(
+    'http_requests_in_flight',
+    'Number of HTTP requests currently being processed',
 )
 
 
@@ -135,7 +155,7 @@ app.add_middleware(
     allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
     allow_headers=["*"],
-    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
+    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset", "X-Request-ID"],
 )
 
 
@@ -147,22 +167,30 @@ if settings.ENVIRONMENT == "production":
     )
 
 
-# Unified middleware: timing + security headers + metrics + security event tracking
+# Unified middleware: timing + request-id + security headers + metrics + security event tracking
 @app.middleware("http")
 async def process_middleware(request: Request, call_next):
     """
     Single middleware that handles:
+    - Request ID correlation (X-Request-ID)
     - Request timing
     - Security headers
     - Prometheus metrics
     - Security event tracking
     """
+    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
     start_time = time.time()
+
+    # Bind request_id to structlog if available, otherwise just store on request state
+    request.state.request_id = request_id
+    RequestIdFilter._ctx_var.set(request_id)
+    IN_FLIGHT.inc()
 
     try:
         response = await call_next(request)
 
         process_time = time.time() - start_time
+        response.headers["X-Request-ID"] = request_id
         response.headers["X-Process-Time"] = str(process_time)
 
         # Add security headers
@@ -188,10 +216,12 @@ async def process_middleware(request: Request, call_next):
         elif response.status_code == 429:
             SECURITY_EVENTS.labels(event_type="rate_limit_exceeded").inc()
 
+        IN_FLIGHT.dec()
         return response
 
     except Exception as e:
-        logger.error(f"Request processing error: {str(e)}")
+        IN_FLIGHT.dec()
+        logger.error(f"Request processing error [request_id={request_id}]: {str(e)}")
         SECURITY_EVENTS.labels(event_type="internal_error").inc()
 
         return JSONResponse(
@@ -204,7 +234,8 @@ async def process_middleware(request: Request, call_next):
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Handle validation errors"""
-    logger.warning(f"Validation error: {exc.errors()}")
+    req_id = getattr(request.state, "request_id", "-")
+    logger.warning(f"Validation error [request_id={req_id}]: {exc.errors()}")
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -218,7 +249,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Handle all unhandled exceptions"""
-    logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+    req_id = getattr(request.state, "request_id", "-")
+    logger.error(f"Unhandled exception [request_id={req_id}]: {str(exc)}", exc_info=True)
 
     SECURITY_EVENTS.labels(event_type="unhandled_exception").inc()
 
@@ -280,6 +312,65 @@ async def health():
         "timestamp": time.time(),
         "database_pool": pool_info,
     }
+
+
+@app.get("/healthz")
+async def liveness():
+    """Kubernetes liveness probe — returns 200 if the process is alive."""
+    return {"status": "alive"}
+
+
+@app.get("/readyz")
+async def readiness():
+    """
+    Kubernetes readiness probe — checks DB, Redis, and Kafka connectivity.
+    Returns 200 only if all backing services are reachable.
+    """
+    import asyncio
+    from app.core.database import get_engine
+    from sqlalchemy import text
+
+    checks: dict[str, dict] = {}
+
+    # 1. Database
+    try:
+        engine = get_engine()
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        checks["database"] = {"status": "ok"}
+    except Exception as e:
+        checks["database"] = {"status": "error", "detail": str(e)}
+
+    # 2. Redis
+    try:
+        from app.core.rate_limiter import rate_limiter as rl
+        await rl.initialize()
+        await rl.redis.ping()
+        checks["redis"] = {"status": "ok"}
+    except Exception as e:
+        checks["redis"] = {"status": "error", "detail": str(e)}
+
+    # 3. Kafka
+    try:
+        from app.core.kafka_client import kafka_producer as kp
+        if kp.producer is None:
+            kp.initialize()
+        kp.producer.list_topics(timeout=3)
+        checks["kafka"] = {"status": "ok"}
+    except Exception as e:
+        checks["kafka"] = {"status": "error", "detail": str(e)}
+
+    all_ok = all(c["status"] == "ok" for c in checks.values())
+    code = status.HTTP_200_OK if all_ok else status.HTTP_503_SERVICE_UNAVAILABLE
+
+    return JSONResponse(
+        status_code=code,
+        content={
+            "status": "ready" if all_ok else "not_ready",
+            "timestamp": time.time(),
+            "checks": checks,
+        },
+    )
 
 
 if __name__ == "__main__":
